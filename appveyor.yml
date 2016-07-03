@@ -3,5 +3,5 @@ build_script:
 - cmd: build.cmd
 test: off
 artifacts:
-- path: artifacts\nupkg
+- path: artifacts\nupkg\*.nupkg
   name: nupkg
