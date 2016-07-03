@@ -40,6 +40,7 @@ http://cakebuild.net
 
 [CmdletBinding()]
 Param(
+    [string]$BuildNumber = "0.0.0",
     [string]$Script = "build.cake",
     [string]$Target = "Default",
     [string]$Configuration = "Release",
@@ -141,5 +142,5 @@ if (!(Test-Path $CAKE_EXE)) {
 
 # Start Cake
 Write-Host "Running build script..."
-Invoke-Expression "& `"$CAKE_EXE`" `"$Script`" -target=`"$Target`" -configuration=`"$Configuration`" -verbosity=`"$Verbosity`" $UseMono $UseDryRun $UseExperimental $ScriptArgs"
+Invoke-Expression "& `"$CAKE_EXE`" `"$Script`" -target=`"$Target`" -configuration=`"$Configuration`" -verbosity=`"$Verbosity`" -build_number=`"$BuildNumber`" $UseMono $UseDryRun $UseExperimental $ScriptArgs" 
 exit $LASTEXITCODE
