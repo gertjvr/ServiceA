@@ -18,7 +18,7 @@ var configuration = Argument<string>("configuration", "Release");
 ///////////////////////////////////////////////////////////////////////////////
 
 var projectName = "ServiceA";
-var buildNumber = BuildSystem.IsRunningOnTeamCity ? EnvironmentVariable("BUILD_NUMBER") : "0.0.0.0";
+var buildNumber = BuildSystem.IsRunningOnAppVeyor ? EnvironmentVariable("APPVEYOR_BUILD_NUMBER") : "0.0.0.0";
 
 var solutions = GetFiles("./**/*.sln");
 var solutionPaths = solutions.Select(solution => solution.GetDirectory());
