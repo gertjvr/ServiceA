@@ -18,7 +18,7 @@ var configuration = Argument<string>("configuration", "Release");
 ///////////////////////////////////////////////////////////////////////////////
 
 var projectName = "ServiceA";
-var buildNumber = BuildSystem.IsRunningOnAppVeyor ? EnvironmentVariable("PPVEYOR_BUILD_VERSION") : "0.0.0.0";
+var buildNumber = BuildSystem.IsRunningOnAppVeyor ? EnvironmentVariable("APPVEYOR_BUILD_VERSION") : "0.0.0.0";
 
 var solutions = GetFiles("./**/*.sln");
 var solutionPaths = solutions.Select(solution => solution.GetDirectory());
