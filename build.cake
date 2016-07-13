@@ -1,4 +1,5 @@
 #addin "Cake.FileHelpers"
+#addin "Cake.Git"
 
 ///////////////////////////////////////////////////////////////////////////////
 // ARGUMENTS
@@ -6,7 +7,6 @@
 
 var target = Argument<string>("target", "Default");
 var configuration = Argument<string>("configuration", "Release");
-var buildNumber = Argument<string>("build_number", "0.0.0");
 
 //////////////////////////////////////////////////////////////////////
 // EXTERNAL NUGET TOOLS
@@ -19,7 +19,7 @@ var buildNumber = Argument<string>("build_number", "0.0.0");
 ///////////////////////////////////////////////////////////////////////////////
 
 var projectName = "ServiceA";
-buildNumber = BuildSystem.IsRunningOnAppVeyor ? EnvironmentVariable("APPVEYOR_BUILD_VERSION") : buildNumber;
+var buildNumber = "0.0.0";
 
 var solutions = GetFiles("./**/*.sln");
 var solutionPaths = solutions.Select(solution => solution.GetDirectory());
@@ -39,6 +39,12 @@ var globalAssemblyFile = srcDir + File("GlobalAssemblyInfo.cs");
 
 Setup(() =>
 {
+    if (BuildSystem.IsRunningOnAppVeyor) {
+        buildNumber = EnvironmentVariable("APPVEYOR_BUILD_VERSION");
+    } else {
+        buildNumber = GitDescribe(".", false, GitDescribeStrategy.Tags, 0);
+    }
+
     Information("Service A");
     Information("");
     Information("v{0}", buildNumber);
