@@ -1,5 +1,4 @@
 #addin "Cake.FileHelpers"
-#addin "Cake.Git"
 
 ///////////////////////////////////////////////////////////////////////////////
 // ARGUMENTS
@@ -9,17 +8,22 @@ var target = Argument<string>("target", "Default");
 var configuration = Argument<string>("configuration", "Release");
 
 //////////////////////////////////////////////////////////////////////
-// EXTERNAL NUGET TOOLS
+// EXTERNAL TOOLS
 //////////////////////////////////////////////////////////////////////
 
-#Tool "xunit.runner.console"
+#tool "nuget:?package=NUnit.ConsoleRunner"
+#Tool "nuget:?package=xunit.runner.console"
 
 ///////////////////////////////////////////////////////////////////////////////
 // GLOBAL VARIABLES
 ///////////////////////////////////////////////////////////////////////////////
 
 var projectName = "ServiceA";
-var buildNumber = "0.0.0";
+
+string buildNumber = null;
+string nugetVersion = null;
+string preReleaseTag = null;
+string semVersion = null;
 
 var solutions = GetFiles("./**/*.sln");
 var solutionPaths = solutions.Select(solution => solution.GetDirectory());
@@ -39,14 +43,28 @@ var globalAssemblyFile = srcDir + File("GlobalAssemblyInfo.cs");
 
 Setup(() =>
 {
-    if (BuildSystem.IsRunningOnAppVeyor) {
-        buildNumber = EnvironmentVariable("APPVEYOR_BUILD_VERSION");
-    } else {
-        buildNumber = GitDescribe(".", false, GitDescribeStrategy.Tags, 0);
-    }
-
     Information("Service A");
     Information("");
+
+	GitVersion(new GitVersionSettings
+    {
+        UpdateAssemblyInfo = true,
+        LogFilePath = "console",
+        OutputType = GitVersionOutput.BuildServer,
+    });
+
+    var assertedVersions = GitVersion(new GitVersionSettings
+    {
+        OutputType = GitVersionOutput.Json,
+    });
+
+	Information("{0}", assertedVersions.ToString());
+
+	buildNumber = assertedVersions.MajorMinorPatch;
+    nugetVersion = assertedVersions.NuGetVersion;
+    preReleaseTag = assertedVersions.PreReleaseTag;
+    semVersion = assertedVersions.LegacySemVerPadded;
+
     Information("v{0}", buildNumber);
 });
 
@@ -99,7 +117,7 @@ Task("__CreateNuGetPackages")
 {
     // Create Cake package.
     NuGetPack("./src/ServiceA.MessageContracts/ServiceA.MessageContracts.csproj", new NuGetPackSettings {
-        Version = buildNumber,
+        Version = nugetVersion,
         IncludeReferencedProjects = true,
         ReleaseNotes = new [] { "" },
         OutputDirectory = nupkgDir,
@@ -115,8 +133,6 @@ Task("__UpdateAssemblyVersionInformation")
     Information("Updating assembly version to {0}", buildNumber);
 
     CreateAssemblyInfo(globalAssemblyFile, new AssemblyInfoSettings {
-        Version = buildNumber,
-        FileVersion = buildNumber,
         Product = projectName,
         Description = projectName,
         Company = "Solutions",

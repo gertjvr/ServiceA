@@ -1,7 +1,9 @@
-version: 1.0.{build}
+assembly_info:
+  patch: false
 build_script:
 - cmd: build.cmd
 test: off
+skip_tags: true
 artifacts:
 - path: artifacts\nupkg\*.nupkg
   name: nupkg
