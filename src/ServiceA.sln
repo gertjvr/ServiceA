@@ -17,6 +17,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceA.Tests", "ServiceA.
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{81B77410-CA1B-4BFA-9EB4-2CB3ECAC670D}"
 	ProjectSection(SolutionItems) = preProject
+		..\appveyor.yml = ..\appveyor.yml
 		..\build.cake = ..\build.cake
 	EndProjectSection
 EndProject

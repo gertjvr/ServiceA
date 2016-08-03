@@ -170,3 +170,4 @@ FakesAssemblies/
 /tools
 /artifacts
 !/src/packages/**
+src/GlobalAssemblyInfo.cs
