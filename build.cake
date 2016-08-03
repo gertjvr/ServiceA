@@ -45,27 +45,6 @@ Setup(() =>
 {
     Information("Service A");
     Information("");
-
-	GitVersion(new GitVersionSettings
-    {
-        UpdateAssemblyInfo = true,
-        LogFilePath = "console",
-        OutputType = GitVersionOutput.BuildServer,
-    });
-
-    var assertedVersions = GitVersion(new GitVersionSettings
-    {
-        OutputType = GitVersionOutput.Json,
-    });
-
-	Information("{0}", assertedVersions.ToString());
-
-	buildNumber = assertedVersions.MajorMinorPatch;
-    nugetVersion = assertedVersions.NuGetVersion;
-    preReleaseTag = assertedVersions.PreReleaseTag;
-    semVersion = assertedVersions.LegacySemVerPadded;
-
-    Information("v{0}", buildNumber);
 });
 
 Teardown(() =>
@@ -130,14 +109,32 @@ Task("__CreateNuGetPackages")
 Task("__UpdateAssemblyVersionInformation")
     .Does(() =>
 {
-    Information("Updating assembly version to {0}", buildNumber);
-
-    CreateAssemblyInfo(globalAssemblyFile, new AssemblyInfoSettings {
+	CreateAssemblyInfo(globalAssemblyFile, new AssemblyInfoSettings {
         Product = projectName,
         Description = projectName,
         Company = "Solutions",
         Copyright = "Copyright (c) " + DateTime.Now.Year
     });
+
+	GitVersion(new GitVersionSettings
+    {
+        UpdateAssemblyInfo = true,
+		UpdateAssemblyInfoFilePath = globalAssemblyFile,
+        LogFilePath = "console",
+        OutputType = GitVersionOutput.BuildServer,
+    });
+
+    var assertedVersions = GitVersion(new GitVersionSettings
+    {
+        OutputType = GitVersionOutput.Json,
+    });
+
+	buildNumber = assertedVersions.MajorMinorPatch;
+    nugetVersion = assertedVersions.NuGetVersion;
+    preReleaseTag = assertedVersions.PreReleaseTag;
+    semVersion = assertedVersions.LegacySemVerPadded;
+
+    Information("Updating assembly version to {0}", buildNumber);
 });
 
 Task("__BuildSolutions")
