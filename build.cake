@@ -84,7 +84,6 @@ Task("__Clean")
 Task("__RestoreNugetPackages")
     .Does(() =>
 {
-    
     Information("Restoring NuGet Packages");
 
 	var settings = new ProcessSettings()
@@ -118,14 +117,14 @@ Task("__CreateNuGetPackages")
 			);
 
 	using(var process = StartAndReturnProcess(srcDir + File(".paket\\paket.exe"), settings))
+	{
+		process.WaitForExit();
+		// This should output 0 as valid arguments supplied
+		if(process.GetExitCode() != 0) 
 		{
-			process.WaitForExit();
-			// This should output 0 as valid arguments supplied
-			if(process.GetExitCode() != 0) 
-			{
-				throw new CakeException("Failed to create nuget packages.");
-			}
+			throw new CakeException("Failed to create nuget packages.");
 		}
+	}
 });
 
 Task("__UpdateAssemblyVersionInformation")
