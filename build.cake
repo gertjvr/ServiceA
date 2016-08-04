@@ -11,7 +11,7 @@ var configuration = Argument<string>("configuration", "Release");
 // EXTERNAL TOOLS
 //////////////////////////////////////////////////////////////////////
 
-#tool "nuget:?package=NUnit.ConsoleRunner"
+#tool "nuget:?package=GitVersion.CommandLine"
 #Tool "nuget:?package=xunit.runner.console"
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -30,7 +30,7 @@ var solutionPaths = solutions.Select(solution => solution.GetDirectory());
 
 // Define directories.
 var srcDir = Directory("./src");
-var artifactsDir = Directory("./artifacts");
+var artifactsDir = Directory("../artifacts");
 var testResultsDir = artifactsDir + Directory("test-results");
 var nupkgDir = artifactsDir + Directory("nupkg");
 
@@ -84,26 +84,48 @@ Task("__Clean")
 Task("__RestoreNugetPackages")
     .Does(() =>
 {
-    foreach(var solution in solutions)
-    {
-        Information("Restoring NuGet Packages for {0}", solution);
-        NuGetRestore(solution);
-    }
+    
+    Information("Restoring NuGet Packages");
+
+	var settings = new ProcessSettings()
+		.UseWorkingDirectory(srcDir)
+		.WithArguments(arguments => arguments.Append("restore"));
+
+	using(var process = StartAndReturnProcess(srcDir + File(".paket\\paket.exe"), settings))
+	{
+		process.WaitForExit();
+		// This should output 0 as valid arguments supplied
+		if(process.GetExitCode() != 0) 
+		{
+			throw new CakeException("Failed to restore nuget packages.");
+		}
+	}
 });
 
 Task("__CreateNuGetPackages")
     .Does(() =>
 {
-    // Create Cake package.
-    NuGetPack("./src/ServiceA.MessageContracts/ServiceA.MessageContracts.csproj", new NuGetPackSettings {
-        Version = nugetVersion,
-        IncludeReferencedProjects = true,
-        ReleaseNotes = new [] { "" },
-        OutputDirectory = nupkgDir,
-        Symbols = false,
-        NoPackageAnalysis = true,
-        Properties = new Dictionary<string,string> { {"Configuration", configuration } } 
-    });
+	var settings = new ProcessSettings()
+		.UseWorkingDirectory(srcDir)
+		.WithArguments(arguments => 
+			arguments
+				.Append("pack")
+				.Append("output {0}", nupkgDir)
+				.Append("buildconfig {0}", configuration)
+				.Append("buildplatform {0}", "AnyCPU")
+				.Append("version {0}", buildNumber)
+				.Append("include-referenced-projects")
+			);
+
+	using(var process = StartAndReturnProcess(srcDir + File(".paket\\paket.exe"), settings))
+		{
+			process.WaitForExit();
+			// This should output 0 as valid arguments supplied
+			if(process.GetExitCode() != 0) 
+			{
+				throw new CakeException("Failed to create nuget packages.");
+			}
+		}
 });
 
 Task("__UpdateAssemblyVersionInformation")
